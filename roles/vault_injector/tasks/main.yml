@@ -50,25 +50,13 @@
   when: __secret_check.rc != 0
 
 - name: Create namespace
-  community.kubernetes.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: "{{ project }}-microservices"
-
-
+  ansible.builtin.shell:
+    cmd: kubectl create namespace {{ project }}-microservices
 
 - name: Create service account
-  community.kubernetes.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: ServiceAccount
-      metadata:
-        name: vault-auth
-        namespace: "{{ project }}-microservices"
+  ansible.builtin.shell:
+    cmd: kubectl create serviceaccount vault-auth --namespace={{ project }}-microservices
+
 
 - name: Enable and configure the auth method
   vault_enable_auth:
