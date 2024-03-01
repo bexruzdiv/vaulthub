@@ -1,11 +1,4 @@
 ---
-- name: install pre-requisites
-  pip:
-    name:
-      - openshift
-      - pyyaml
-      - kubernetes 
-
 - name: creator secret
   vault_create_secret:
     name: secret
