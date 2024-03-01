@@ -1,11 +1,4 @@
-- name: Install Kubernetes.core collection
-  hosts: 65.108.95.43
-  gather_facts: True
-  tasks:
-    - name: Install Kubernetes.core collection
-      ansible.builtin.shell:
-        cmd: ansible-galaxy collection install kubernetes.core
-        
+
 - name: Backup from vault cluster
   hosts: 65.108.95.43
   gather_facts: True
