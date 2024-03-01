@@ -1,5 +1,5 @@
 - name: Install Kubernetes.core collection
-  hosts: localhost
+  hosts: 65.108.148.117
   gather_facts: False
   tasks:
     - name: Install Kubernetes.core collection
