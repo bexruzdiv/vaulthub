@@ -1,6 +1,6 @@
 
 - name: Backup from vault cluster
-  hosts: k3s
+  hosts: 65.108.95.43
   gather_facts: True
   become: yes
   roles:
