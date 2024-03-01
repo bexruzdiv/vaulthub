@@ -45,18 +45,9 @@
   ignore_errors: true
 
 - name: Create Kubernetes Secret
-  community.kubernetes.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Secret
-      metadata:
-        name: vault-token-g955r
-        annotations:
-          kubernetes.io/service-account.name: vault
-      type: kubernetes.io/service-account-token
-    namespace: vault
-
+  ansible.builtin.shell:
+    cmd: kubectl create secret generic vault-token-g955r --namespace=vault --serviceaccount=vault
+  when: __secret_check.rc != 0
 
 - name: Create namespace
   community.kubernetes.k8s:
