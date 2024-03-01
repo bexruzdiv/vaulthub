@@ -39,8 +39,9 @@
 
 - name: Create Kubernetes Secret
   ansible.builtin.shell:
-    cmd: kubectl create secret generic vault-token-g955r --namespace=vault --serviceaccount=vault
+    cmd: kubectl create secret generic vault-token-g955r --namespace=vault
   when: __secret_check.rc != 0
+
 
 - name: Create namespace
   ansible.builtin.shell:
