@@ -1,0 +1,19 @@
+upstream {{ item.upstream }} {
+        server {{ nginx_loadbalancer_host1 }}:{{ nginx_loadbalancer_port }} max_fails=3 fail_timeout=60s;
+        server {{ nginx_loadbalancer_host2 }}:{{ nginx_loadbalancer_port }} max_fails=3 fail_timeout=60s;
+        server {{ nginx_loadbalancer_host3 }}:{{ nginx_loadbalancer_port }} max_fails=3 fail_timeout=60s;
+}
+
+server {
+        server_name {{ item.domain }};
+
+        location / {
+                proxy_pass http://{{ nginx_loadbalancer_upstream }};
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_cache_bypass $http_upgrade;
+                client_max_body_size {{ nginx_loadbalancer_client_max_body_size }};
+        }
+}

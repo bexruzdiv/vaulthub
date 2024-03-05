@@ -1,0 +1,9 @@
+# File: templates/policy.tpl
+
+path "{{ item.vso_secret_name }}/data/{{ item.vso_secret_collection }}" {
+   capabilities = ["read"]
+}
+
+path "{{ item.vso_secret_name }}/metadata/{{ item.vso_secret_collection }}" {
+   capabilities = ["read"]
+}
