@@ -1,4 +1,4 @@
-upstream {{ item.upstream }} {
+upstream {{ nginx_loadbalancer_upstream }} {
         server {{ nginx_loadbalancer_host1 }}:{{ nginx_loadbalancer_port }} max_fails=3 fail_timeout=60s;
         server {{ nginx_loadbalancer_host2 }}:{{ nginx_loadbalancer_port }} max_fails=3 fail_timeout=60s;
         server {{ nginx_loadbalancer_host3 }}:{{ nginx_loadbalancer_port }} max_fails=3 fail_timeout=60s;
