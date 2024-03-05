@@ -1,5 +1,5 @@
 - name: Get certificate with certmanger to k8s cluster
-  hosts: loadbalancer
+  hosts: vault
   gather_facts: True
   roles:
     - role: ../roles/nginx_loadbalancer

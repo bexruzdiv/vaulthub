@@ -1,7 +1,0 @@
-
-- name: Backup from vault cluster
-  hosts: 65.108.95.43
-  gather_facts: True
-  become: yes
-  roles:
-    - role: roles/vault_injector

@@ -6,12 +6,12 @@
 
 - name: Ensure pre and post hook folders exist.
   file:
-    path: /etc/letsencrypt/renewal-hooks/{{ item }}
+    path: /etc/letsencrypt/renewal-hooks/{{ nginx_loadbalancer_domain }}
     state: directory
     mode: 0755
     owner: root
     group: root
-  with_items:
+  loop:
     - pre
     - post
 
