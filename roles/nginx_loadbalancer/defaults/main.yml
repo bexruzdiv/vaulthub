@@ -8,8 +8,8 @@ nginx_loadbalancer_domain: vaultb.bexruzdev.uz
 nginx_loadbalancer_upstream: vaultb.bexruzdev.uz
 nginx_loadbalancer_client_max_body_size: 100M
 #*  vault cluster IPs
-nginx_loadbalancer_host1: 135.181.46.196 #ip
-nginx_loadbalancer_host2: 37.27.40.125 #ip  
-nginx_loadbalancer_host3: 65.108.148.117 #ip
+nginx_loadbalancer_host1: 65.108.148.117 #ip
+nginx_loadbalancer_host2: 65.108.95.43 #ip  
+nginx_loadbalancer_host3: 65.108.95.43 #ip
 nginx_loadbalancer_port:
 nginx_loadbalancer_renew: true
