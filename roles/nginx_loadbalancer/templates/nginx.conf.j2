@@ -5,7 +5,7 @@ upstream {{ nginx_loadbalancer_upstream }} {
 }
 
 server {
-        server_name {{ item.domain }};
+        server_name {{ nginx_loadbalancer_domain }};
 
         location / {
                 proxy_pass http://{{ nginx_loadbalancer_upstream }};
