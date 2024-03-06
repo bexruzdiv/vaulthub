@@ -47,6 +47,14 @@
       acl = private
     dest: /root/.config/rclone/rclone.conf
 
+- name: Send Vault backup file to Cloudflare R2
+  when: __server_ip.stdout == __vault_leader_ip.stdout
+  shell: |
+    rclone copy {{ backup_base_path }}/vault_backup_$(date +'%Y_%m_%d').snap r2:test-vault
+  args:
+    executable: /bin/bash
+  become_user: root
+  ignore_errors: true
 
 - name: copy backup_vault
   template:
