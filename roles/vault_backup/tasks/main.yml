@@ -8,13 +8,19 @@
     executable: /bin/bash
   become_user: root
 
+- name: Get the server's IP address
+  shell: hostname -I | awk '{print $1}'
+  register: __server_ip
+  become_user: root
+
 - name: Take Vault snapshot with dynamic date in filename
+  when: __server_ip.stdout == __vault_leader_ip.stdout
   shell: |
-    VAULT_TOKEN='{{ backup_vault_token }}' vault operator raft snapshot save -address=http://{{ __vault_leader_ip.stdout }}:8200 {{ backup_base_path }}/vault_backup_{{ ansible_date_time.year }}_{{ ansible_date_time.month }}_{{ ansible_date_time.day }}.snap
+    VAULT_TOKEN='{{ backup_vault_token }}' vault operator raft snapshot save -address=http://{{ __server_ip.stdout }}:8200 {{ backup_base_path }}/vault_backup_{{ ansible_date_time.year }}_{{ ansible_date_time.month }}_{{ ansible_date_time.day }}.snap
   args:
     executable: /bin/bash
   become_user: root
-
+  ignore_errors: true
 
 - name: copy installer_rclone
   template:
