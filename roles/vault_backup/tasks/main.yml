@@ -1,25 +1,20 @@
 ---
 - name: Determine the Vault cluster leader IP
-  shell: |
-    LEADER_IP=$(VAULT_TOKEN={{ backup_vault_root_token }} vault operator raft list-peers --address={{ backup_vault_address }} | awk '$3 == "leader" {print $2}' | cut -d':' -f1)
-    echo $LEADER_IP
-  register: __vault_leader_ip
-  args:
-    executable: /bin/bash
-  become_user: root
+  get_vault_leader_ip:
+    vault_address: "{{ vault_address }}"
+    vault_token: "{{ backup_vault_root_token }}"
+  register: __vault_leader
 
 - name: Get the server's IP address
   shell: hostname -I | awk '{print $1}'
   register: __server_ip
-  become_user: root
 
 - name: Take Vault snapshot with dynamic date in filename
-  when: __server_ip.stdout == __vault_leader_ip.stdout
+  when: __server_ip.stdout == __vault_leader.stdout
   shell: |
     VAULT_TOKEN='{{ backup_vault_token }}' vault operator raft snapshot save -address=http://{{ __server_ip.stdout }}:8200 {{ backup_base_path }}/vault_backup_{{ ansible_date_time.year }}_{{ ansible_date_time.month }}_{{ ansible_date_time.day }}.snap
   args:
     executable: /bin/bash
-  become_user: root
   ignore_errors: true
 
 - name: copy installer_rclone
@@ -29,12 +24,8 @@
 
 - name: Run installer_rclone.sh script
   shell: /bin/bash /root/installer_rclone.sh
-  become: true
-  become_user: root
 
 - name: Create rclone.conf file
-  become: true
-  become_user: root
   copy:
     content: |
       [r2]
@@ -48,12 +39,11 @@
     dest: /root/.config/rclone/rclone.conf
 
 - name: Send Vault backup file to Cloudflare R2
-  when: __server_ip.stdout == __vault_leader_ip.stdout
+  when: __server_ip.stdout == __vault_leader.stdout
   shell: |
     rclone copy {{ backup_base_path }}/vault_backup_$(date +'%Y_%m_%d').snap r2:test-vault
   args:
     executable: /bin/bash
-  become_user: root
   ignore_errors: true
 
 - name: copy backup_vault
@@ -64,7 +54,13 @@
 - name: Set up cron job to run backup_vault.sh every minute
   cron:
     name: "Backup Vault"
-    special_time: "daily"
+    minute: "{{ backup_minute }}"
+    hour: "{{ backup_hour }}"
+    day: "{{ backup_day }}"
+    month: "{{ backup_month }}"
+    weekday: "{{ backup_weekday }}"
     job: "/bin/bash /opt/vault/data/raft/backup_vault.sh"
     user: root
     state: present
+
+    

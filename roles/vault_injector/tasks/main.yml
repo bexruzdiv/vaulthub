@@ -71,6 +71,7 @@
       type: kubernetes.io/service-account-token
     namespace: vault
 
+#! looooooooooooop
 - name: Create namespace
   community.kubernetes.k8s:
     state: present
@@ -78,8 +79,10 @@
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: "{{ vault_injector_project }}-microservices"
+        name: "{{ item.vault_injector_namespace }}"
+  loop: "{{ vault_injector_loop }}"
 
+#! looooooooooooop
 - name: Create service account
   community.kubernetes.k8s:
     state: present
@@ -88,7 +91,8 @@
       kind: ServiceAccount
       metadata:
         name: vault-auth
-        namespace: "{{ vault_injector_project }}-microservices"
+        namespace: "{{ item.vault_injector_namespace }}"
+  loop: "{{ vault_injector_loop }}"
 
 - name: Enable and configure the auth method
   vault_enable_auth:
@@ -97,71 +101,68 @@
     vault_address: "{{ vault_injector_address }}"
     vault_token: "{{ vault_injector_token }}"
 
-# ! policy
-- name: Write Vault policy
-  vault_write_policy:
-    name: kubernetes-"{{ vault_injector_project }}"
-    path: "secret/data/k8s/{{ vault_injector_project }}/*"
-    vault_address: "{{ vault_injector_address }}"
-    vault_token: "{{ vault_injector_token }}"
-    permission: 
-      - read
-      - list
-      - update
-
 # ! ENVIRONMENT SET 
 - name: Get token from Kubernetes secret
   ansible.builtin.shell:
     cmd: "kubectl get -n vault secret vault-token-g955r --output='go-template={{ '{{' }} .data.token {{ '}}' }}' | base64 --decode"
-  register: __vso_token_output
+  register: __vault_injector_token_output
 
 - name: Get Kubernetes CA certificate
   ansible.builtin.shell:
     cmd: "kubectl config view --raw --minify --flatten --output='jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode"
-  register: __vso_ca_cert_output
+  register: __vault_injector_cert_output
 
 - name: Get Kubernetes host
   ansible.builtin.shell:
     cmd: "kubectl config view --raw --minify --flatten --output='jsonpath={.clusters[].cluster.server}'"
-  register: __vso_kube_host_output
+  register: __vault_injector_kube_host_output
 
-# !!! there is no check 
+
 - name: Write Vault authentication configuration
   vault_write_auth_config:
     k8s_auth_name: kubernetes-"{{ vault_injector_project }}"
 
-    token_reviewer_jwt: "{{ __vso_token_output.stdout }}"
-    kubernetes_host: "{{ __vso_kube_host_output.stdout }}"
-    kubernetes_ca_cert: "{{ __vso_ca_cert_output.stdout }}"
+    token_reviewer_jwt: "{{ __vault_injector_token_output.stdout }}"
+    kubernetes_host: "{{ __vault_injector_kube_host_output.stdout }}"
+    kubernetes_ca_cert: "{{ __vault_injector_cert_output.stdout }}"
     issuer: "https://kubernetes.default.svc.cluster.local"
     vault_address: "{{ vault_injector_address }}"
     vault_token: "{{ vault_injector_token }}"
 
-# !!! there is no check 
+#! looooooooooooop
+# ! policy 
+- name: Write Vault policy
+  vault_write_policy:
+    name: "{{ item.vault_injector_role_name }}-policy"
+    path: "secret/data/{{ item.vault_injector_secret_path }}/*"
+    vault_address: "{{ vault_injector_address }}"
+    vault_token: "{{ vault_injector_token }}"
+    permission: 
+      - read
+  loop: "{{ vault_injector_loop }}"
+
+#! looooooooooooop
 - name: Write Vault role configuration
   vault_write_auth_role:
     k8s_auth_name: kubernetes-"{{ vault_injector_project }}"
-    role_name: "{{ vault_injector_project }}"
-    policies: kubernetes-"{{ vault_injector_project }}"
+    role_name: "{{ item.vault_injector_role_name }}"
+    policies: "{{ item.vault_injector_role_name }}-policy"
     service_account_names: "vault-auth"
-    service_account_namespaces: "{{ vault_injector_project }}-microservices"
+    service_account_namespaces: "{{ item.vault_injector_namespace }}"
     ttl: "24h"
     vault_address: "{{ vault_injector_address }}"
     vault_token: "{{ vault_injector_token }}"
+  loop: "{{ vault_injector_loop }}"
 
+#! loop
 - name: Put data to secret
   vault_put_secret:
     vault_address: "{{ vault_injector_address }}"
     vault_token: "{{ vault_injector_token }}"
-    secret_path: "secret/k8s/{{ vault_injector_project }}/test-secret"
+    secret_path: "secret/{{ item.vault_injector_secret_path }}/test-secret"
     data:
       - key: "name"
-        value: "Robert"
-      - key: "Age"
-        value: "18"
-      - key: "city"
-        value: "Tashkent"
-      - key: "interest"
-        value: "engenering"
-      - key: "project"
-        value: "qwerty"
+        value: "delete-it"
+  loop: "{{ vault_injector_loop }}"
+
+

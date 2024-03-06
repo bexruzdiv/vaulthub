@@ -5,3 +5,11 @@ vault_injector_address: "" #your vault cluster address
 vault_injector_token: "" # Your vault Token 
 vault_injector_kubeconfig_vault_path: # path to kube config file in vault
 vault_injector_project: ""  # your project name
+
+vault_injector_loop:
+  - vault_injector_namespace: "nimadir1"
+    vault_injector_role_name: "test1"
+    vault_injector_secret_path: "k8s/project1"
+  - vault_injector_namespace: "nimadir2"
+    vault_injector_role_name: "test2"
+    vault_injector_secret_path: "k8s/project2"

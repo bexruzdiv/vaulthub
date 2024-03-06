@@ -6,6 +6,14 @@ backup_vault_address: "http://domain.com"
 backup_base_path: "/opt/vault/data/raft/snapshots"
 backup_cronjob: true
 
+
+backup_minute: "0"
+backup_hour: "0"
+backup_day: "*"
+backup_month: "*"
+backup_weekday: "*"
+
+
 backup_r2_access_key_id: 
 backup_r2_secret_access_key: 
 backup_r2_endpoint: 
