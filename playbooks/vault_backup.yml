@@ -1,4 +1,4 @@
-- name: Get certificate with certmanger to k8s cluster
+- name: Runner of vault_backup role
   hosts: vault
   gather_facts: True
   roles:

@@ -1,0 +1,5 @@
+- name: Runner of vault_injector role
+  hosts: localhost
+  gather_facts: True
+  roles:
+    - role: ../roles/vault_injector
