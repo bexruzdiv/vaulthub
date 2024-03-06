@@ -1,0 +1,5 @@
+- name: Get certificate with certmanger to k8s cluster
+  hosts: vault
+  gather_facts: True
+  roles:
+    - role: ../roles/vault_backup

@@ -1,5 +1,47 @@
 ---
-# tasks file for vault_backup
-# - import_tasks: install-vault.yml
+- name: Take Vault snapshot with dynamic date in filename
+  shell: |
+    VAULT_TOKEN='{{ backup_vault_token }}' vault operator raft snapshot save -address={{ backup_vault_address }} {{ backup_base_path }}/vault_backup_{{ ansible_date_time.year }}_{{ ansible_date_time.month }}_{{ ansible_date_time.day }}.snap
+  args:
+    executable: /bin/bash
+  become_user: root
 
-- import_tasks: backup.yml
+
+- name: copy installer_rclone
+  template:
+    src: installer_rclone.sh
+    dest: /root/installer_rclone.sh
+
+- name: Run installer_rclone.sh script
+  shell: /bin/bash /root/installer_rclone.sh
+  become: true
+  become_user: root
+
+- name: Create rclone.conf file
+  become: true
+  become_user: root
+  copy:
+    content: |
+      [r2]
+      type = s3
+      provider = Cloudflare
+      access_key_id = {{ backup_r2_access_key_id }}
+      secret_access_key = {{ backup_r2_secret_access_key }}
+      region = auto
+      endpoint = {{ backup_r2_endpoint }}
+      acl = private
+    dest: /root/.config/rclone/rclone.conf
+
+
+- name: copy backup_vault
+  template:
+    src: backup_vault.sh.j2
+    dest: /opt/vault/data/raft/backup_vault.sh
+
+- name: Set up cron job to run backup_vault.sh every minute
+  cron:
+    name: "Backup Vault"
+    special_time: "daily"
+    job: "/bin/bash /opt/vault/data/raft/backup_vault.sh"
+    user: root
+    state: present
