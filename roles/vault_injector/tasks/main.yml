@@ -151,7 +151,7 @@
 
 - name: Put data to secret
   vault_put_secret:
-    vault_address: "{{ vso_vault_address }}"
+    vault_address: "{{ vault_injector_address }}"
     vault_token: "{{ vault_injector_token }}"
     secret_path: "secret/k8s/{{ vault_injector_project }}/test-secret"
     data:
