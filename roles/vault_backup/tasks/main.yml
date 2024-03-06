@@ -5,7 +5,7 @@
 
 - name: Take Vault snapshot with dynamic date in filename
   shell: |
-    VAULT_TOKEN='{{ backup_vault_token }}' vault operator raft snapshot save -address=http:// {{ backup_base_path }}/vault_backup_{{ ansible_date_time.year }}_{{ ansible_date_time.month }}_{{ ansible_date_time.day }}.snap
+    VAULT_TOKEN='{{ backup_vault_token }}' vault operator raft snapshot save -address=http://{{ __server_ip.stdout }}:8200 {{ backup_base_path }}/vault_backup_{{ ansible_date_time.year }}_{{ ansible_date_time.month }}_{{ ansible_date_time.day }}.snap
   args:
     executable: /bin/bash
   become_user: root
