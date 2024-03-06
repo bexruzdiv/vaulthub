@@ -7,6 +7,31 @@
       - pyyaml
       - kubernetes 
 
+- name: Retrieve kubeconfig from Vault and write to a user-writable location
+  block:
+    - name: Retrieve kubeconfig from Vault
+      shell: vault kv get -field=value {{ vault_injector_kubeconfig_vault_path }}
+      environment:
+        VAULT_ADDR: "{{ vault_injector_address }}"
+        VAULT_TOKEN: "{{ vault_injector_token }}"
+      register: __kubeconfig_json
+
+- name: Convert JSON to YAML and save to a variable
+  set_fact:
+    _kubeconfig_content: "{{ __kubeconfig_json.stdout | from_json | to_nice_yaml }}"
+
+- name: Ensure .kube directory exists
+  file:
+    path: "/root/.kube"
+    state: directory
+    mode: '0755'
+
+- name: Save kubeconfig to /root/.kube/config
+  copy:
+    content: "{{ _kubeconfig_content }}"
+    dest: "/root/.kube/config"
+    mode: '0600'
+
 - name: creator secret
   vault_create_secret:
     name: secret
@@ -14,26 +39,13 @@
     vault_address: "{{ vault_injector_address }}"
     vault_token: "{{ vault_injector_token }}"
 
-
-# - name: Check if Helm repository already exists
-#   command: helm repo list | grep -q "hashicorp"
-#   register: __helm_repo_check
-#   ignore_errors: true
-
 - name: Add a repository
-  # when: __helm_repo_check.rc != 0
   kubernetes.core.helm_repository:
     name: hashicorp
     repo_url: https://helm.releases.hashicorp.com
 
-# - name: Check if Helm release already exists
-#   ansible.builtin.shell:
-#     cmd: helm list -n vault | grep -q "^vault\s"
-#   ignore_errors: true
-#   register: __helm_release_check
 
 - name: Install Helm chart if release doesn't exist
-  # when: __helm_release_check.rc != 0
   community.kubernetes.helm:
     release_name: vault
     chart_ref: hashicorp/vault
@@ -44,8 +56,6 @@
       injector:
         enabled: "true"
         externalVaultAddr: "{{ vault_injector_address }}"
-
-
 
 - name: Check if secret already exists
   ansible.builtin.shell:
@@ -66,7 +76,6 @@
       type: kubernetes.io/service-account-token
     namespace: vault
 
-
 - name: Create namespace
   community.kubernetes.k8s:
     state: present
@@ -75,8 +84,6 @@
       kind: Namespace
       metadata:
         name: "{{ vault_injector_project }}-microservices"
-
-
 
 - name: Create service account
   community.kubernetes.k8s:
@@ -106,8 +113,6 @@
       - read
       - list
       - update
-
-
 
 # ! ENVIRONMENT SET 
 - name: Get token from Kubernetes secret
@@ -149,7 +154,6 @@
     vault_address: "{{ vault_injector_address }}"
     vault_token: "{{ vault_injector_token }}"
 
-
 - name: Put data to secret
   vault_put_secret:
     vault_address: "{{ vso_vault_address }}"
@@ -157,28 +161,12 @@
     secret_path: "secret/k8s/{{ vault_injector_project }}/test-secret"
     data:
       - key: "name"
-        value: "Rober"
+        value: "Robert"
       - key: "Age"
         value: "18"
       - key: "city"
         value: "Tashkent"
       - key: "interest"
         value: "engenering"
-      - key: "about"
-        value: "poxima"
-# - name: Put data to secret
-#   put_vault_secret:
-#     vault_address: "{{ vso_vault_address }}"
-#     vault_token: "{{ vault_injector_token }}"
-#     secret_path: "me5/test2"
-#     data:
-#       - key: "name"
-#         value: "Bexruz"
-#       - key: "Age"
-#         value: "18"
-#       - key: "city"
-#         value: "Tashkent"
-#       - key: "interest"
-#         value: "engenering"
-#       - key: "info"
-#         value: "cybersecurity"
+      - key: "project"
+        value: "{{ vault_injector_project }}"
