@@ -164,4 +164,4 @@
       - key: "interest"
         value: "engenering"
       - key: "project"
-        value: "{{ vault_injector_project }}"
+        value: "qwerty"
