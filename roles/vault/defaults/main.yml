@@ -2,7 +2,7 @@ vault_server_1:   # * leader ip address
 vault_server_2:   # * follower 1 ip address
 vault_server_3:   # * follower 2 ip address
 
-prometheus: true
+vault_prometheus: true
 
 # *! Warnig!!! Unseal keys can be dangerous to store. This may give others access to the Vault!
 #* save all unseal key and token in leader server /root/key

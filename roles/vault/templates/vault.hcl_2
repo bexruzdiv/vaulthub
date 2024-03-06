@@ -12,7 +12,7 @@ listener "tcp" {
   tls_disable = true
 }
 
-{% if prometheus|bool %}
+{% if vault_prometheus|bool %}
 telemetry {
   disable_hostname = true
   prometheus_retention_time = "15s"
