@@ -7,9 +7,9 @@ vault_injector_kubeconfig_vault_path: # path to kube config file in vault
 vault_injector_project: ""  # your project name
 
 vault_injector_loop:
-  - vault_injector_namespace: "nimadir1"
-    vault_injector_role_name: "test1"
-    vault_injector_secret_path: "k8s/project1"
-  - vault_injector_namespace: "nimadir2"
-    vault_injector_role_name: "test2"
-    vault_injector_secret_path: "k8s/project2"
+  - vault_injector_namespace: "" #name for k8s namespace
+    vault_injector_role_name: "" #new name for vault role
+    vault_injector_secret_path: "" #secret path. Dont begin with secret engine
+  - vault_injector_namespace: ""
+    vault_injector_role_name: ""
+    vault_injector_secret_path: ""
