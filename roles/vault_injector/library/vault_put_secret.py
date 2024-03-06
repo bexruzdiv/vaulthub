@@ -26,7 +26,7 @@ def main():
 
     # Execute the command to put data into Vault secret
     result = subprocess.run(
-        ["vault", "kv", "put", secret_path] + [f"{k}={v}" for k, v in payload.items()],
+        ["/usr/local/bin/vault", "kv", "put", secret_path] + [f"{k}={v}" for k, v in payload.items()],
         env={'VAULT_ADDR': vault_address, 'VAULT_TOKEN': vault_token},
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
