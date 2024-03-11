@@ -67,29 +67,6 @@
   args:
     executable: /bin/bash
 
-# - name: Get vault-tls secret and write to file
-#   shell: kubectl get secret vault-tls -o jsonpath="{.data.ca\.crt}" | base64 --decode > /root/vault-ca.crt
-#   args:
-#     executable: /bin/bash
-
-# - name: Set VAULT_CACERT environment variable
-#   ansible.builtin.set_fact:
-#     vault_cacert: "/root/vault-ca.crt"
-#   environment:
-#     VAULT_CACERT: "{{ vault_cacert }}"
-
-# - name: Retrieve VAULT_TOKEN from Kubernetes secret
-#   shell: kubectl get secrets vault-unseal-keys -o jsonpath="{.data.vault-root}" | base64 --decode
-#   register: vault_token_raw
-#   args:
-#     executable: /bin/bash
-
-# - name: Set VAULT_TOKEN environment variable
-#   ansible.builtin.set_fact:
-#     vault_token: "{{ vault_token_raw.stdout }}"
-#   environment:
-#     VAULT_TOKEN: "{{ vault_token }}"
-
 - name: Create vault-infra namespace
   kubernetes.core.k8s:
     kind: Namespace
