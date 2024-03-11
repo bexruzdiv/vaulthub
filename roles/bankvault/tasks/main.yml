@@ -38,14 +38,14 @@
   community.kubernetes.helm:
     name: vault-operator
     chart_ref: "oci://ghcr.io/bank-vaults/helm-charts/vault-operator"
-    release_namespace: vault # adjust the namespace as needed
+    release_namespace: default # adjust the namespace as needed
     create_namespace: true
     wait: true
     state: present
 
 - name: Fetch and apply Kustomize configuration
   ansible.builtin.shell: |
-    kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/rbac | \ sed '/^metadata:/a\ \ namespace: vault' | kubectl apply -f -
+    kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/rbac | kubectl apply -f -
   args:
     executable: /bin/bash
 
@@ -58,12 +58,12 @@
 - name: Apply the CR manifest for Vault Operator
   kubernetes.core.k8s:
     state: present
-    namespace: vault
+    namespace: default
     src: "/tmp/cr-raft.yaml"
 
 - name: Fetch and apply Kustomize configuration
   ansible.builtin.shell: |
-    kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/crd | \ sed '/^metadata:/a\ \ namespace: vault' | kubectl apply -f -
+    kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/crd | kubectl apply -f -
   args:
     executable: /bin/bash
 
