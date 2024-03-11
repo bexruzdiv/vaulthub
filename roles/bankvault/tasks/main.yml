@@ -107,10 +107,11 @@
           name: vault-infra
 
 - name: Deploy vault-secrets-webhook with Helm
-  kubernetes.core.helm:
+  community.kubernetes.helm:
     name: vault-secrets-webhook
-    chart_repo: "oci://ghcr.io/bank-vaults/helm-charts"
-    chart_name: vault-secrets-webhook
+    chart_ref: "oci://ghcr.io/bank-vaults/helm-charts/vault-secrets-webhook"
     release_namespace: vault-infra
     state: present
     wait: true
+
+
