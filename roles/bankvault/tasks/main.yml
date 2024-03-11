@@ -1,0 +1,66 @@
+---
+# tasks file for bankvault
+- name: install pre-requisites
+  pip:
+    name:
+      - openshift
+      - pyyaml
+      - kubernetes 
+
+- name: Retrieve kubeconfig from Vault and write to a user-writable location
+  block:
+    - name: Retrieve kubeconfig from Vault
+      shell: vault kv get -field=value {{ vault_injector_kubeconfig_vault_path }}
+      environment:
+        VAULT_ADDR: "{{ vault_injector_address }}"
+        VAULT_TOKEN: "{{ vault_injector_token }}"
+      register: __kubeconfig_json
+
+- name: Convert JSON to YAML and save to a variable
+  set_fact:
+    _kubeconfig_content: "{{ __kubeconfig_json.stdout | from_json | to_nice_yaml }}"
+
+- name: Ensure .kube directory exists
+  file:
+    path: "/root/.kube"
+    state: directory
+    mode: '0755'
+
+- name: Save kubeconfig to /root/.kube/config
+  copy:
+    content: "{{ _kubeconfig_content }}"
+    dest: "/root/.kube/config"
+    mode: '0600'
+
+
+#! start
+- name: Install or upgrade vault-operator Helm chart
+  community.kubernetes.helm:
+    name: vault-operator
+    chart_ref: "oci://ghcr.io/bank-vaults/helm-charts/vault-operator"
+    release_namespace: default # adjust the namespace as needed
+    create_namespace: true
+    wait: true
+    state: present
+
+- name: Apply Kustomize configuration
+  kubernetes.core.kustomize:
+    state: present
+    kubeconfig: /root/.kube/kubeconfig
+    src: https://github.com/bank-vaults/vault-operator/deploy/rbac
+  
+- name: Download the CR manifest for Vault Operator
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/bank-vaults/vault-operator/v1.21.0/deploy/examples/cr-raft.yaml
+    dest: "/tmp/cr-raft.yaml"
+
+- name: Apply the CR manifest for Vault Operator
+  kubernetes.core.k8s:
+    state: present
+    src: "/tmp/cr-raft.yaml"
+
+- name: Apply Kustomize configuration
+  kubernetes.core.kustomize:
+    state: present
+    kubeconfig: /root/.kube/kubeconfig
+    src: https://github.com/bank-vaults/vault-operator/deploy/crd

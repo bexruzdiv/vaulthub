@@ -1,0 +1,5 @@
+- name: Build bankvault in kubernetes
+  hosts: bankvault
+  gather_facts: True
+  roles:
+    - role: ../roles/bankvault
