@@ -58,6 +58,7 @@
 - name: Apply the CR manifest for Vault Operator
   kubernetes.core.k8s:
     state: present
+    namespace: default
     src: "/tmp/cr-raft.yaml"
 
 - name: Fetch and apply Kustomize configuration
@@ -65,3 +66,51 @@
     kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/crd | kubectl apply -f -
   args:
     executable: /bin/bash
+
+# - name: Get vault-tls secret and write to file
+#   shell: kubectl get secret vault-tls -o jsonpath="{.data.ca\.crt}" | base64 --decode > /root/vault-ca.crt
+#   args:
+#     executable: /bin/bash
+
+# - name: Set VAULT_CACERT environment variable
+#   ansible.builtin.set_fact:
+#     vault_cacert: "/root/vault-ca.crt"
+#   environment:
+#     VAULT_CACERT: "{{ vault_cacert }}"
+
+# - name: Retrieve VAULT_TOKEN from Kubernetes secret
+#   shell: kubectl get secrets vault-unseal-keys -o jsonpath="{.data.vault-root}" | base64 --decode
+#   register: vault_token_raw
+#   args:
+#     executable: /bin/bash
+
+# - name: Set VAULT_TOKEN environment variable
+#   ansible.builtin.set_fact:
+#     vault_token: "{{ vault_token_raw.stdout }}"
+#   environment:
+#     VAULT_TOKEN: "{{ vault_token }}"
+
+- name: Create vault-infra namespace
+  kubernetes.core.k8s:
+    kind: Namespace
+    name: vault-infra
+    state: present
+
+- name: Label namespace vault-infra
+  kubernetes.core.k8s:
+    kind: Namespace
+    name: vault-infra
+    state: present
+    definition:
+      metadata:
+        labels:
+          name: vault-infra
+
+- name: Deploy vault-secrets-webhook with Helm
+  kubernetes.core.helm:
+    name: vault-secrets-webhook
+    chart_repo: "oci://ghcr.io/bank-vaults/helm-charts"
+    chart_name: vault-secrets-webhook
+    release_namespace: vault-infra
+    state: present
+    wait: true
