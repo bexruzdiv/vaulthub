@@ -43,11 +43,12 @@
     wait: true
     state: present
 
-- name: Apply Kustomize configuration
-  kubernetes.core.kustomize:
-    state: present
-    kubeconfig: /root/.kube/kubeconfig
-    src: https://github.com/bank-vaults/vault-operator/deploy/rbac
+- name: Fetch and apply Kustomize configuration
+  ansible.builtin.shell: |
+    kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/rbac | kubectl apply -f -
+  args:
+    executable: /bin/bash
+
   
 - name: Download the CR manifest for Vault Operator
   ansible.builtin.get_url:
@@ -59,8 +60,8 @@
     state: present
     src: "/tmp/cr-raft.yaml"
 
-- name: Apply Kustomize configuration
-  kubernetes.core.kustomize:
-    state: present
-    kubeconfig: /root/.kube/kubeconfig
-    src: https://github.com/bank-vaults/vault-operator/deploy/crd
+- name: Fetch and apply Kustomize configuration
+  ansible.builtin.shell: |
+    kubectl kustomize https://github.com/bank-vaults/vault-operator/deploy/crd | kubectl apply -f -
+  args:
+    executable: /bin/bash
