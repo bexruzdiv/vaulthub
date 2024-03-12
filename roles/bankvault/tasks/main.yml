@@ -38,7 +38,7 @@
   community.kubernetes.helm:
     name: vault-operator
     chart_ref: "oci://ghcr.io/bank-vaults/helm-charts/vault-operator"
-    release_namespace: {{ bankvault_namespace }}
+    release_namespace: "{{ bankvault_namespace }}"
     create_namespace: true
     wait: true
     state: present
@@ -58,7 +58,7 @@
 - name: Apply the CR manifest for Vault Operator
   kubernetes.core.k8s:
     state: present
-    namespace: {{ bankvault_namespace }}
+    namespace: "{{ bankvault_namespace }}"
     src: /tmp/cr-raft.yaml
 
 # - name: Apply the CR manifest for Vault Operator directly from URL
@@ -105,5 +105,5 @@
 - name: Apply ingress 
   kubernetes.core.k8s:
     state: present
-    namespace: {{ bankvault_namespace }}
+    namespace: "{{ bankvault_namespace }}"
     src: /tmp/ingress.yml
