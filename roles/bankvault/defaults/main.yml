@@ -1,2 +1,5 @@
 ---
 # defaults file for bankvault
+bankvault_clusterissuer: letsencrypt-prod
+bankvault_domain: vaults.bexruzdev.uz
+bankvault_namespace: default

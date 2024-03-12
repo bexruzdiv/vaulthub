@@ -50,22 +50,22 @@
     executable: /bin/bash
 
   
-# - name: Download the CR manifest for Vault Operator
-#   ansible.builtin.get_url:
-#     url: https://raw.githubusercontent.com/bank-vaults/vault-operator/v1.21.0/deploy/examples/cr-raft.yaml
-#     dest: "/tmp/cr-raft.yaml"
+- name: Download the CR manifest for Vault Operator
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/bank-vaults/vault-operator/v1.21.0/deploy/examples/cr-raft.yaml
+    dest: "/tmp/cr-raft.yaml"
 
-# - name: Apply the CR manifest for Vault Operator
-#   kubernetes.core.k8s:
-#     state: present
-#     namespace: default
-#     src: "/tmp/cr-raft.yaml"
+- name: Apply the CR manifest for Vault Operator
+  kubernetes.core.k8s:
+    state: present
+    namespace: default
+    src: /tmp/cr-raft.yaml
 
-- name: Apply the CR manifest for Vault Operator directly from URL
-  ansible.builtin.shell:
-    cmd: kubectl apply -f https://raw.githubusercontent.com/bank-vaults/vault-operator/v1.21.0/deploy/examples/cr-raft.yaml
-  args:
-    executable: /bin/bash
+# - name: Apply the CR manifest for Vault Operator directly from URL
+#   ansible.builtin.shell:
+#     cmd: kubectl apply -f https://raw.githubusercontent.com/bank-vaults/vault-operator/v1.21.0/deploy/examples/cr-raft.yaml
+#   args:
+#     executable: /bin/bash
     
 - name: Fetch and apply Kustomize configuration
   ansible.builtin.shell: |
@@ -97,4 +97,13 @@
     state: present
     wait: true
 
+- name: Copy ingress 
+  template:
+    src: ingress.j2
+    dest: /tmp/ingress.yml
 
+- name: Apply ingress 
+  kubernetes.core.k8s:
+    state: present
+    namespace: default
+    src: /tmp/ingress.yml
