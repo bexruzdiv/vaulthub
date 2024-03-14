@@ -1,0 +1,202 @@
+---
+# tasks file for external_bankvault
+- name: install pre-requisites
+  pip:
+    name:
+      - openshift
+      - pyyaml
+      - kubernetes 
+
+# - name: Retrieve kubeconfig from Vault and write to a user-writable location
+#   block:
+#     - name: Retrieve kubeconfig from Vault
+#       shell: vault kv get -field=value {{ external_bankvault_kubeconfig_vault_path }}
+#       environment:
+#         VAULT_ADDR: "{{ external_bankvault_address }}"
+#         VAULT_TOKEN: "{{ external_bankvault_token }}"
+#       register: __kubeconfig_json
+
+# - name: Convert JSON to YAML and save to a variable
+#   set_fact:
+#     _kubeconfig_content: "{{ __kubeconfig_json.stdout | from_json | to_nice_yaml }}"
+
+# - name: Ensure .kube directory exists
+#   file:
+#     path: "/root/.kube"
+#     state: directory
+#     mode: '0755'
+
+# - name: Save kubeconfig to /root/.kube/config
+#   copy:
+#     content: "{{ _kubeconfig_content }}"
+#     dest: "/root/.kube/config"
+#     mode: '0600'
+
+- name: creator secret
+  vault_create_secret:
+    name: secret
+    secret_type: "kv-v2"
+    vault_address: "{{ external_bankvault_address }}"
+    vault_token: "{{ external_bankvault_token }}"
+
+- name: Helm Upgrade/Install
+  community.kubernetes.helm:
+    name: "vault-operator"         
+    chart_ref: "oci://ghcr.io/bank-vaults/helm-charts/vault-operator"  
+    release_namespace: vault
+    create_namespace: true     
+    wait: true   
+
+- name: Create namespace 'vault-infra'
+  community.kubernetes.k8s:
+    api_version: v1
+    kind: Namespace
+    name: vault-infra
+
+- name: Helm Upgrade/Install Vault Secrets Webhook
+  community.kubernetes.helm: 
+    name: "vault-secrets-webhook"  
+    chart_ref: "oci://ghcr.io/bank-vaults/helm-charts/vault-secrets-webhook"  
+    release_namespace: "vault-infra"  
+    wait: true  
+
+- name: Create ServiceAccount 'vault'
+  community.kubernetes.k8s:
+    api_version: v1
+    kind: ServiceAccount
+    name: vault-auth
+    namespace: default
+
+- name: Create Kubernetes Secret
+  community.kubernetes.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: vault-token-g955r
+        annotations:
+          kubernetes.io/service-account.name: vault-auth
+      type: kubernetes.io/service-account-token
+    namespace: default
+
+- name: Create namespace
+  community.kubernetes.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ item.external_bankvault_namespace }}"
+  loop: "{{ external_bankvault_loop }}"
+
+- name: Create service account
+  community.kubernetes.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: vault-auth
+        namespace: "{{ item.external_bankvault_namespace }}"
+  loop: "{{ external_bankvault_loop }}"
+
+- name: Create Kubernetes Secret
+  community.kubernetes.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: vault-token-g955r
+        annotations:
+          kubernetes.io/service-account.name: vault-auth
+      type: kubernetes.io/service-account-token
+    namespace: "{{ item.external_bankvault_namespace }}"
+  loop: "{{ external_bankvault_loop }}"
+
+- name: Enable and configure the auth method
+  vault_enable_auth:
+    k8s_auth_name: kubernetes-"{{ item.external_bankvault_role_name  }}"
+    auth_method: "kubernetes"
+    vault_address: "{{ external_bankvault_address }}"
+    vault_token: "{{ external_bankvault_token }}"
+  loop: "{{ external_bankvault_loop }}"
+
+# ! ENVIRONMENT SET 
+- name: Get token from Kubernetes secret
+  ansible.builtin.shell:
+    cmd: "kubectl get -n vault secret vault-token-g955r --output='go-template={{ '{{' }} .data.token {{ '}}' }}' | base64 --decode"
+  register: __vault_injector_token_output
+
+- name: Get Kubernetes CA certificate
+  ansible.builtin.shell:
+    cmd: "kubectl config view --raw --minify --flatten --output='jsonpath={.clusters[].cluster.certificate-authority-data}' | base64 --decode"
+  register: __vault_injector_cert_output
+
+- name: Get Kubernetes host
+  ansible.builtin.shell:
+    cmd: "kubectl config view --raw --minify --flatten --output='jsonpath={.clusters[].cluster.server}'"
+  register: __vault_injector_kube_host_output
+
+- name: Write Vault authentication configuration
+  vault_write_auth_config:
+    skip_fail: true
+    k8s_auth_name: kubernetes-"{{ item.external_bankvault_role_name  }}"
+
+    token_reviewer_jwt: "{{ __vault_injector_token_output.stdout }}"
+    kubernetes_host: "{{ __vault_injector_kube_host_output.stdout }}"
+    kubernetes_ca_cert: "{{ __vault_injector_cert_output.stdout }}"
+    issuer: "https://kubernetes.default.svc.cluster.local"
+    disable_local_ca_jwt: "true"
+    vault_address: "{{ external_bankvault_address }}"
+    vault_token: "{{ external_bankvault_token }}"
+  loop: "{{ external_bankvault_loop }}"
+
+- name: Write Vault policy
+  vault_write_policy:
+    name: "{{ item.external_bankvault_role_name }}-policy"
+    path: "secret/data/{{ item.external_bankvault_secret_path }}/*"
+    vault_address: "{{ external_bankvault_address }}"
+    vault_token: "{{ external_bankvault_token }}"
+    permission: 
+      - read
+  loop: "{{ external_bankvault_loop }}"
+
+- name: Write Vault role configuration
+  vault_write_auth_role:
+    skip_fail: true
+    k8s_auth_name: kubernetes-"{{ item.external_bankvault_role_name }}"
+    role_name: "{{ item.external_bankvault_role_name }}"
+    policies: "{{ item.external_bankvault_role_name }}-policy"
+    service_account_names: "vault-auth"
+    service_account_namespaces: "{{ item.external_bankvault_namespace }}"
+    ttl: "24h"
+    vault_address: "{{ external_bankvault_address }}"
+    vault_token: "{{ external_bankvault_token }}"
+  loop: "{{ external_bankvault_loop }}"
+
+- name: Put data to secret
+  vault_put_secret:
+    vault_address: "{{ external_bankvault_address }}"
+    vault_token: "{{ external_bankvault_token }}"
+    secret_path: "secret/{{ item.external_bankvault_secret_path }}/test-secret"
+    data:
+      - key: "name"
+        value: "{{ item.external_bankvault_role_name }}"
+  loop: "{{ external_bankvault_loop }}"
+
+- name: Gather all namespaces
+  set_fact:
+    _all_namespaces: "{{ external_bankvault_loop | map(attribute='external_bankvault_namespace') | list }}"
+
+- name: Create ClusterRoleBinding for all namespaces
+  template:
+    src: cluster_role_binding.yml.j2
+    dest: /root/cluster_role_binding.yml
+
+- name: Apply cluster rolebinding YAML file
+  community.kubernetes.k8s:
+    src: /root/cluster_role_binding.yml
+    state: present
+
