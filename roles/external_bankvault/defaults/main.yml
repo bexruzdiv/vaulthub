@@ -1,22 +1,28 @@
 ---
 # defaults file for external_bankvault
 
-external_bankvault_address: "https://domain.uz" #your vault cluster address
-external_bankvault_token: "hvs.token" # Your vault Token 
+external_bankvault_address: "http://18.212.236.56:8200" #your vault cluster address
+external_bankvault_token: "hvs.DpMVigg8GjQxhEdPFAYZpwz7" # Your vault Token 
 external_bankvault_kubeconfig_vault_path: # path to kube config file in vault
 
 
 external_bankvault_loop:
-  - external_bankvault_namespace: "testnamespace1" #name for k8s namespace
+  - external_bankvault_namespace: "testlab1" #name for k8s namespace
     external_bankvault_role_name: "testrole1" #new name for vault role
     external_bankvault_secret_path: "k8s/testlab1" #secret path. Dont begin with secret engine
 
-  - external_bankvault_namespace: "testnamespace2"
+  - external_bankvault_namespace: "testlab2"
     external_bankvault_role_name: "testrole2"
     external_bankvault_secret_path: "k8s/testlab2"
     
-
-
-
-
-
+  - external_bankvault_namespace: "testlab3"
+    external_bankvault_role_name: "testrole3"
+    external_bankvault_secret_path: "k8s/testlab3"
+    
+  - external_bankvault_namespace: "testlab4"
+    external_bankvault_role_name: "testrole4"
+    external_bankvault_secret_path: "k8s/testlab4"
+    
+  - external_bankvault_namespace: "testlab5"
+    external_bankvault_role_name: "testrole5"
+    external_bankvault_secret_path: "k8s/testlab5"
