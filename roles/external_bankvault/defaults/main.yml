@@ -2,7 +2,8 @@
 # defaults file for external_bankvault
 
 external_bankvault_kubeconfig_vault_path: # path to kube config file in vault
-
+external_bankvault_address: "{{ lookup('env', 'VAULT_ADDR') }}"
+external_bankvault_token: "{{  __login_data.login.auth.client_token }}"
 
 external_bankvault_loop:
   - external_bankvault_namespace: "example1" #name for k8s namespace
