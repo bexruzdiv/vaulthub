@@ -7,30 +7,39 @@
       - pyyaml
       - kubernetes 
 
-# - name: Retrieve kubeconfig from Vault and write to a user-writable location
-#   block:
-#     - name: Retrieve kubeconfig from Vault
-#       shell: vault kv get -field=value {{ external_bankvault_kubeconfig_vault_path }}
-#       environment:
-#         VAULT_ADDR: "{{ external_bankvault_address }}"
-#         VAULT_TOKEN: "{{ external_bankvault_token }}"
-#       register: __kubeconfig_json
+- name: Get role token from Vault
+  community.hashi_vault.vault_login:
+    url: "{{ lookup('env', 'VAULT_ADDR') }}"
+    auth_method: approle
+    mount_point: "approle"
+    role_id: "{{ ansible_hashi_vault_role_id }}"
+    secret_id: "{{ ansible_hashi_vault_secret_id }}" 
+  register: __login_data
 
-# - name: Convert JSON to YAML and save to a variable
-#   set_fact:
-#     _kubeconfig_content: "{{ __kubeconfig_json.stdout | from_json | to_nice_yaml }}"
+- name: Retrieve kubeconfig from Vault and write to a user-writable location
+  block:
+    - name: Retrieve kubeconfig from Vault
+      shell: vault kv get -field=value {{ external_bankvault_kubeconfig_vault_path }}
+      environment:
+        VAULT_ADDR: "{{ lookup('env', 'VAULT_ADDR') }}"
+        VAULT_TOKEN: "{{  __login_data.login.auth.client_token }}"
+      register: __kubeconfig_json
 
-# - name: Ensure .kube directory exists
-#   file:
-#     path: "/root/.kube"
-#     state: directory
-#     mode: '0755'
+- name: Convert JSON to YAML and save to a variable
+  set_fact:
+    _kubeconfig_content: "{{ __kubeconfig_json.stdout | from_json | to_nice_yaml }}"
 
-# - name: Save kubeconfig to /root/.kube/config
-#   copy:
-#     content: "{{ _kubeconfig_content }}"
-#     dest: "/root/.kube/config"
-#     mode: '0600'
+- name: Ensure .kube directory exists
+  file:
+    path: "/root/.kube"
+    state: directory
+    mode: '0755'
+
+- name: Save kubeconfig to /root/.kube/config
+  copy:
+    content: "{{ _kubeconfig_content }}"
+    dest: "/root/.kube/config"
+    mode: '0600'
 
 - name: creator secret
   vault_create_secret:
