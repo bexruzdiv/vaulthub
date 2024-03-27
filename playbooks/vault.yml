@@ -1,4 +1,4 @@
-- name: Get certificate with certmanger to k8s cluster
+- name: Build vault cluster
   hosts: vault
   gather_facts: True
   roles:
