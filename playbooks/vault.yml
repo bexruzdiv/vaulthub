@@ -1,5 +1,5 @@
 - name: Build vault cluster
-  hosts: vault
+  hosts: all
   gather_facts: True
   roles:
     - role: ../roles/vault
