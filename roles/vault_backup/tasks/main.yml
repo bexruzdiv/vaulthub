@@ -1,8 +1,17 @@
 ---
+- name: Get role token from Vault
+  community.hashi_vault.vault_login:
+    url: "{{ external_bankvault_address }}"
+    auth_method: approle
+    mount_point: "approle"
+    role_id: "{{ ansible_hashi_vault_role_id }}"
+    secret_id: "{{ ansible_hashi_vault_secret_id }}" 
+  register: __login_data
+
 - name: Determine the Vault cluster leader IP
   get_vault_leader_ip:
-    vault_address: "{{ vault_address }}"
-    vault_token: "{{ backup_vault_root_token }}"
+    vault_address: "{{ backup_vault_address }}"
+    vault_token: "{{ backup_vault_token }}"
   register: __vault_leader
 
 - name: Get the server's IP address
@@ -12,7 +21,7 @@
 - name: Take Vault snapshot with dynamic date in filename
   when: __server_ip.stdout == __vault_leader.stdout
   shell: |
-    VAULT_TOKEN='{{ backup_vault_token }}' vault operator raft snapshot save -address=http://{{ __server_ip.stdout }}:8200 {{ backup_base_path }}/vault_backup_{{ ansible_date_time.year }}_{{ ansible_date_time.month }}_{{ ansible_date_time.day }}.snap
+    VAULT_TOKEN='{{ backup_vault_token }}' vault operator raft snapshot save -address=http://{{ __server_ip.stdout }}:8200 {{ backup_base_path }}/{{ backup_file_name }}_{{ ansible_date_time.year }}_{{ ansible_date_time.month }}_{{ ansible_date_time.day }}.snap
   args:
     executable: /bin/bash
   ignore_errors: true
@@ -26,22 +35,14 @@
   shell: /bin/bash /root/installer_rclone.sh
 
 - name: Create rclone.conf file
-  copy:
-    content: |
-      [r2]
-      type = s3
-      provider = Cloudflare
-      access_key_id = {{ backup_r2_access_key_id }}
-      secret_access_key = {{ backup_r2_secret_access_key }}
-      region = auto
-      endpoint = {{ backup_r2_endpoint }}
-      acl = private
+  template:
+    src: rclone_conf.j2
     dest: /root/.config/rclone/rclone.conf
 
 - name: Send Vault backup file to Cloudflare R2
   when: __server_ip.stdout == __vault_leader.stdout
   shell: |
-    rclone copy {{ backup_base_path }}/vault_backup_$(date +'%Y_%m_%d').snap r2:test-vault
+    rclone copy {{ backup_base_path }}/{{ backup_file_name }}_$(date +'%Y_%m_%d').snap r2:test-vault
   args:
     executable: /bin/bash
   ignore_errors: true

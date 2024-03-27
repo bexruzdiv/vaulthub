@@ -1,8 +1,8 @@
 ---
 # defaults file for vault_injector
 
-vault_injector_address: "" #your vault cluster address
-vault_injector_token: "" # Your vault Token 
+vault_injector_address: "{{ lookup('env', 'VAULT_ADDR') }}" #your vault cluster address
+vault_injector_token: "{{  __login_data.login.auth.client_token }}" # Your vault Token 
 vault_injector_kubeconfig_vault_path: # path to kube config file in vault
 vault_injector_project: ""  # your project name
 

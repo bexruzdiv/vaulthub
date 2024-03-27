@@ -7,6 +7,15 @@
       - pyyaml
       - kubernetes 
 
+- name: Get role token from Vault
+  community.hashi_vault.vault_login:
+    url: "{{ external_bankvault_address }}"
+    auth_method: approle
+    mount_point: "approle"
+    role_id: "{{ ansible_hashi_vault_role_id }}"
+    secret_id: "{{ ansible_hashi_vault_secret_id }}" 
+  register: __login_data
+  
 - name: Retrieve kubeconfig from Vault and write to a user-writable location
   block:
     - name: Retrieve kubeconfig from Vault

@@ -1,18 +1,16 @@
 ---
 # defaults file for vault_backup
-backup_vault_root_token: ""
-backup_vault_token: ""
-backup_vault_address: "http://domain.com"
+backup_vault_token: "{{  __login_data.login.auth.client_token }}"
+backup_vault_address: "{{ lookup('env', 'VAULT_ADDR') }}"
 backup_base_path: "/opt/vault/data/raft/snapshots"
+backup_file_name: "vault_backup"
 backup_cronjob: true
-
 
 backup_minute: "0"
 backup_hour: "0"
 backup_day: "*"
 backup_month: "*"
 backup_weekday: "*"
-
 
 backup_r2_access_key_id: 
 backup_r2_secret_access_key: 

@@ -2,7 +2,7 @@
 MY_IP=$(hostname -I | awk '{print $1}')
 
 # Get the IP address of the Vault leader
-LEADER_IP=$(VAULT_TOKEN={{ backup_vault_root_token }} vault operator raft list-peers --address={{ backup_vault_address }} | awk '$3 == "leader" {print $2}' | cut -d':' -f1)
+LEADER_IP=$(VAULT_TOKEN={{ backup_vault_token }} vault operator raft list-peers --address={{ backup_vault_address }} | awk '$3 == "leader" {print $2}' | cut -d':' -f1)
 
 # Check if the current node is the leader
 if [ "$MY_IP" == "$LEADER_IP" ]; then
