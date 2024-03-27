@@ -9,19 +9,3 @@ external_bankvault_loop:
   - external_bankvault_namespace: "example1" #name for k8s namespace
     external_bankvault_role_name: "example1" #new name for vault role
     external_bankvault_secret_path: "k8s/example1" #secret path. Dont begin with secret engine
-
-  # - external_bankvault_namespace: "testlab2"
-  #   external_bankvault_role_name: "testrole2"
-  #   external_bankvault_secret_path: "k8s/testlab2"
-    
-  # - external_bankvault_namespace: "testlab3"
-  #   external_bankvault_role_name: "testrole3"
-  #   external_bankvault_secret_path: "k8s/testlab3"
-    
-  # - external_bankvault_namespace: "testlab4"
-  #   external_bankvault_role_name: "testrole4"
-  #   external_bankvault_secret_path: "k8s/testlab4"
-    
-  # - external_bankvault_namespace: "testlab5"
-  #   external_bankvault_role_name: "testrole5"
-  #   external_bankvault_secret_path: "k8s/testlab5"
