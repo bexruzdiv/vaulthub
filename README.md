@@ -246,17 +246,28 @@ __This Ansible role performs the following tasks:__
 3.  Set Cronjob for backup
 
 ### Required of you!
-Change variables in the defaults/main.yml
+1. Create credential type and credential in __AWX__ follow the steps below [AWX settings](https://github.com/bexruzdiv/vaulthub/edit/main/README.md#awx-settings)!
+2. This may make a difference when creating a policy. Because the vault backup required privilege for read all secret
+   Use that configuration for create policy
 
-![image](https://github.com/bexruzdiv/cluster_vault/assets/107495220/82dfaadc-9019-4f30-a35b-019378571186)
-  -  Create and specify a token from Vault for backup 
-  -  Specify the address of your Vault cluster
+   ```
+   path "*" {
+    capabilities = ["create", "read", "update", "list"]
+   }
+
+   ```
+   
+Change variables 
+![image](https://github.com/bexruzdiv/vaulthub/assets/107495220/fc36de35-ac09-4db4-acaf-f78fccbf5426)
+
   -  Edit Path for save backups
-  -   If the value of `backup_cronjob` is `true`. A cronjob is set to take a backup every night at 00:00
+  -  Edit filename for save
+  -  If the value of `backup_cronjob` is `true`. A cronjob is set to take a backup every night at 00:00 (you can change the time at will)
+  -  Fill in information about cloudflare R2 storage. The taken snapshots are saved directly to r2 storage 
 
 ### External Bank-vault
 #### Required of you!
- - If you are using `AWX!` follow the steps below [AWX settings](https://github.com/bexruzdiv/vaulthub/edit/main/README.md#awx-settings).! This is for connecting to kubernetes and is needed to create and manage resources within the vault.
+ - If you are using `AWX!` follow the steps below [AWX settings](https://github.com/bexruzdiv/vaulthub/edit/main/README.md#awx-settings)! This is for connecting to kubernetes and is needed to create and manage resources within the vault.
  - Ready vault cluster
  - Ready kubernetes cluster
  - Set variables in the defaults/main.yml 
