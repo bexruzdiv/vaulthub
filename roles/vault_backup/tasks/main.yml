@@ -7,14 +7,14 @@
 #   pip:
 #     name: hvac
 #     executable: /usr/bin/python3
-- name: Get role token from Vault
-  community.hashi_vault.vault_login:
-    url: "{{ backup_vault_address }}"
-    auth_method: approle
-    mount_point: "approle"
-    role_id: "{{ ansible_hashi_vault_role_id }}"
-    secret_id: "{{ ansible_hashi_vault_secret_id }}" 
-  register: __login_data
+# - name: Get role token from Vault
+#   community.hashi_vault.vault_login:
+#     url: "{{ backup_vault_address }}"
+#     auth_method: approle
+#     mount_point: "approle"
+#     role_id: "{{ ansible_hashi_vault_role_id }}"
+#     secret_id: "{{ ansible_hashi_vault_secret_id }}" 
+#   register: __login_data
 
 - name: Determine the Vault cluster leader IP
   vault_leader_ip_finder:
