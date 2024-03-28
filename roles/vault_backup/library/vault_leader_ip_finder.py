@@ -3,11 +3,11 @@
 
 from ansible.module_utils.basic import AnsibleModule
 import subprocess
-    os.environ["HOME"] = "/tmp"
+
 
 def vault_leader_ip_finder(vault_address, vault_token):
     import os
-    os.environ["HOME"] = "/tmp"
+    os.environ["HOME"] = "/root"
     cmd = ["vault", "operator", "raft", "list-peers", "--address={}".format(vault_address)]
     env = {"VAULT_TOKEN": vault_token}
     
