@@ -1,8 +1,9 @@
 ---
-- name: install pre-requisites
+
+- name: Install hvac library
   pip:
-    name:
-      - hvac
+    name: hvac
+    executable: /usr/bin/python3
 - name: Get role token from Vault
   community.hashi_vault.vault_login:
     url: "{{ backup_vault_address }}"
