@@ -1,7 +1,7 @@
 ---
 - name: Get role token from Vault
   community.hashi_vault.vault_login:
-    url: "{{ external_bankvault_address }}"
+    url: "{{ backup_vault_address }}"
     auth_method: approle
     mount_point: "approle"
     role_id: "{{ ansible_hashi_vault_role_id }}"
