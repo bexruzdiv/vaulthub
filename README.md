@@ -254,7 +254,79 @@ Change variables in the defaults/main.yml
   -  Edit Path for save backups
   -   If the value of `backup_cronjob` is `true`. A cronjob is set to take a backup every night at 00:00
 
-## Vault Secret Operator role
+### External Bank-vault
+#### Required of you!
+ - If you are using `AWX!` follow the steps below [AWX settings](https://github.com/bexruzdiv/vaulthub/edit/main/README.md#awx-settings).! This is for connecting to kubernetes and is needed to create and manage resources within the vault.
+ - Ready vault cluster
+ - Ready kubernetes cluster
+ - Set variables in the defaults/main.yml 
+
+1. First  follow the steps below [AWX settings](https://github.com/bexruzdiv/vaulthub/edit/main/README.md#awx-settings). But! This may make a difference when creating a __policy__. because the __vault operator__ required more privilege to create resources.
+   Use that configuration for create policy
+
+   ```
+    path "*" {
+    capabilities = ["create", "read", "update", "list"]
+    }
+
+    path "sys/policies/acl"
+    {
+    capabilities = ["list"]
+    }  
+
+    path "sys/policies/acl/*"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+
+    # Manage auth methods broadly across Vault
+    path "auth/*"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+
+    # Create, update, and delete auth methods
+    path "sys/auth/*"
+    {
+      capabilities = ["create", "update", "delete", "sudo"]
+    }
+
+    # List auth methods
+    path "sys/auth"
+    {
+      capabilities = ["read"]
+    }
+    # List, create, update, and delete key/value secrets
+    path "secret/*"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+    # Manage secrets engines
+    path "sys/mounts/*"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+    # List existing secrets engines.
+    path "sys/mounts"
+    {
+      capabilities = ["read"]
+    }
+    path "sys/capabilities-self"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+   ```
+2. Recreate role with new policy
+3. Get new role id and secret id  
+4. Create new credential in __AWX__ with new ids
+5. Set the variable from defaults file to the path to the Vault where config.json is located (In my case: secret/awx/kubeconfig)
+![image](https://github.com/bexruzdiv/vaulthub/assets/107495220/f1be5448-7df7-478a-909c-949c1188e3bf)
+6. And for your project to work, the namespace name from kubernetes (ansible will create it if it doesn't exist! ),
+7. The role name used in the vault, and the vault path where the variables are stored
+8. You can enter this information as much as you like. you are required to always save this data and add new data to the bottom (save as variables in awx ). Ansible creates a rolebinding and updates the rolebinding each time. If the previous data is deleted, it also deletes them from the rolebinding and this prevents secrets from coming from the vault
+![image](https://github.com/bexruzdiv/vaulthub/assets/107495220/ce770f9b-0f34-4f4f-bd57-6c20b39a408c)
+
+<!--## Vault Secret Operator role
 > [!NOTE]
 > This Ansible role automates the setup and configuration of a Vault Secret Operator, facilitating seamless integration between Vault and Kubernetes for managing secrets.
 
@@ -275,7 +347,7 @@ Change variables in the defaults/main.yml
   -  Write your collection name to `vso_secret_collection`
   -  Change to  your`s  domain or ip address of `vso_vault_address`
   -  Set to your vault token `vso_vault_token`
-
+-->
 # How to monitor Vault Cluster🖥〽️
 > [!NOTE]
 > Since this process is not automated, you have to do it manually
