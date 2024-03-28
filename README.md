@@ -59,6 +59,115 @@ The Vault Secret Operator (VSO) is a tool that facilitates the integration betwe
 3. __Fault Tolerance:__ Multi-node clusters provide fault tolerance by replicating data across nodes. In case of node failure, data can be seamlessly retrieved from other nodes, preventing data loss or service disruptions.
 4. __Load Balancing:__ A cluster enables load balancing of client requests across multiple nodes, improving performance and resource utilization, reducing the risk of single points of failure and enhancing overall system reliability.
 
+
+### AWX settings
+> [!WARNING]
+> If you are using `AWX!` Follow the steps below. This is for connecting to kubernetes.
+
+- Convert kubeconfig file to json format
+```
+yq eval -o=json .kube/config > config.json
+```
+- Send json formatted file to vault
+```
+vault kv put secret/awx/kubeconfig value=@config.json
+```
+> [!NOTE]
+> Open AWX now and follow the steps below!
+
+- Create credential type in AWX. From left menu "Credential Types" ➝ Add
+![image](https://github.com/bexruzdiv/k8s-bootstrap/assets/107495220/baa6e99d-a80c-48a0-a7e1-85bdbfed2536)
+
+- Name: Name for credential Type.
+- Description: Description for Credential type (Oprional)
+- Injector configuration: 
+```
+fields:
+  - id: vault_url
+    type: string
+    label: Vault URL
+  - id: role_id
+    type: string
+    label: App Role ID
+  - id: secret_id
+    type: string
+    label: App Role Secret ID
+    secret: true
+required:
+  - vault_url
+  - role_id
+  - secret_id
+```
+- Second Injector configuration:
+```
+env:
+  VAULT_ADDR: '{{ vault_url }}'
+  VAULT_ROLE_ID: '{{ role_id }}'
+  VAULT_SECRET_ID: '{{ secret_id }}'
+  VAULT_AUTH_METHOD: approle
+extra_vars:
+  ansible_hashi_vault_url: '{{ vault_url }}'
+  ansible_hashi_vault_role_id: '{{ role_id }}'
+  ansible_hashi_vault_secret_id: '{{ secret_id }}'
+  ansible_hashi_vault_auth_method: approle
+```
+
+![image](https://github.com/bexruzdiv/k8s-bootstrap/assets/107495220/ebdf64aa-823e-4632-921f-c93aa23f772d)
+
+- Push "Save" button
+
+> [!NOTE]
+> Now open Vault (UI or CLI) and follow the steps below!
+
+- Enable approle auth if it is necessary
+  ```
+  vault auth enable approle
+  ```
+
+- Create access policy for access from AWX (For example policy name is "awx-user-policy")
+  ```
+  vault policy write awx-user-policy - <<EOF
+  path "secret/data/awx/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+  }
+  EOF
+  ```
+- Create role in approle and attach access policy (For example user name is "awx-user" and policy name is "awx-user-policy")
+  ```
+  vault write auth/approle/role/awx-user \
+    token_max_ttl=24h \
+    token_ttl=1h \
+    token_policies="awx-user-policy"
+  ```
+
+- Print role id and secret id (User "awx-user"). We use this ids for creating credential in AWX
+  ```
+  vault read auth/approle/role/awx-user/role-id
+  ```
+  ```
+  vault write -f auth/approle/role/awx-user/secret-id
+  ```
+
+- We can write and read data from Vault for checking access polity
+  ```
+  vault kv put secret/awx/test test='working'  
+  ```
+  ```
+  vault kv get -format=json secret/awx/test | jq ".data.data"
+  ```
+> [!NOTE]
+> Create Credential in AWX
+
+- From left menu "Credentials" ➝ Add
+- Name: Name for credential
+- Description: Description for Credential (Oprional)
+- Organization: Choose organization
+- Credential Type: Find choose credential type name, which we created above
+- Vault URL: Url of vault server (For example https://vault.uz)
+- App Role ID: Role id, which we get above 
+- App Role Secret ID: Secret id, which we get above
+- Push "Save" button
+
 ## How to use ansible roles?
 __You just need to change the variables in the defaults/main.yml file inside the roles to use these ansible roles!__
 ## Vault role
