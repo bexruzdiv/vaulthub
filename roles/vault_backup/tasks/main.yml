@@ -48,7 +48,7 @@
     dest: /root/.config/rclone/rclone.conf
 
 - name: Send Vault backup file to Cloudflare R2
-  when: __server_ip.stdout == __vault_leader.stdout
+  when: __server_ip.stdout == __vault_leader.leader_ip
   shell: |
     rclone copy {{ backup_base_path }}/{{ backup_file_name }}_$(date +'%Y_%m_%d').snap r2:test-vault
   args:
