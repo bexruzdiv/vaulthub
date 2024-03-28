@@ -1,4 +1,8 @@
 ---
+- name: install pre-requisites
+  pip:
+    name:
+      - hvac
 - name: Get role token from Vault
   community.hashi_vault.vault_login:
     url: "{{ backup_vault_address }}"
