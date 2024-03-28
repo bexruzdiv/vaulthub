@@ -1,7 +1,7 @@
 ---
 # defaults file for vault_backup
-backup_vault_token: hvs.naCqEeHfdpQPjlvyQmObX7Vn #"{{  __login_data.login.auth.client_token }}"
-backup_vault_address: https://vaultest.bexruzdev.uz #"{{ lookup('env', 'VAULT_ADDR') }}"
+backup_vault_token:  #"{{  __login_data.login.auth.client_token }}"
+backup_vault_address:  #"{{ lookup('env', 'VAULT_ADDR') }}"
 backup_base_path: "/opt/vault/data/raft/snapshots"
 backup_file_name: "vault_backup"
 backup_cronjob: true
