@@ -258,12 +258,13 @@ __This Ansible role performs the following tasks:__
    ```
    
 Change variables 
-![image](https://github.com/bexruzdiv/vaulthub/assets/107495220/fc36de35-ac09-4db4-acaf-f78fccbf5426)
 
   -  Edit Path for save backups
   -  Edit filename for save
   -  If the value of `backup_cronjob` is `true`. A cronjob is set to take a backup every night at 00:00 (you can change the time at will)
   -  Fill in information about cloudflare R2 storage. The taken snapshots are saved directly to r2 storage 
+
+![image](https://github.com/bexruzdiv/vaulthub/assets/107495220/fc36de35-ac09-4db4-acaf-f78fccbf5426)
 
 ### External Bank-vault
 #### Required of you!
