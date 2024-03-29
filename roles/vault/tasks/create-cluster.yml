@@ -1,7 +1,7 @@
 - name: Create Vault configuration file
   when: inventory_hostname in ['leader', 'follower1', 'follower2']
   template:
-    src: "{{ 'vault.hcl_1' if inventory_hostname == 'leader' else ('vault.hcl_2' if inventory_hostname == 'follower1' else 'vault.hcl_3') }}"
+    src: "{{ 'vault.hcl_1.j2' if inventory_hostname == 'leader' else ('vault.hcl_2.j2' if inventory_hostname == 'follower1' else 'vault.hcl_3.j2') }}"
     dest: /etc/vault.d/vault.hcl
 
 - name: Ensure Vault service is started and enabled

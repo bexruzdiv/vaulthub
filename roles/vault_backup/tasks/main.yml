@@ -37,7 +37,7 @@
 
 - name: copy installer_rclone
   template:
-    src: installer_rclone.sh
+    src: installer_rclone.sh.j2
     dest: /root/installer_rclone.sh
 
 - name: Run installer_rclone.sh script
