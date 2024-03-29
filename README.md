@@ -116,6 +116,16 @@ extra_vars:
 
 - Push "Save" button
 
+#### Create excution environment
+  -  First create your own image for awx runner. Download this [GITHUB](https://github.com/bexruzdiv/awx-excuter.git) repository. And build your image and push to your dockerhub.
+  -  From left menu "Execution Environments"  ➝ Add
+  -  "Name"  ➝  name for your Execution Environments
+  -  Image ➝  your full image name
+  -  "Organization"  ➝  your organization
+  -  "Save"
+
+![image](https://github.com/bexruzdiv/vaulthub/assets/107495220/4373208c-464f-4a2e-befa-54ee7594efe1)
+
 > [!NOTE]
 > Now open Vault (UI or CLI) and follow the steps below!
 
